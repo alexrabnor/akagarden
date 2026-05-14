@@ -109,7 +109,7 @@ const HOLES = [
     title: 'Den långa par-3:an',
     desc: 'Banans näst svåraste hål, och en par-3 på det. Lång och välförsvarad green som kräver hög och mjuk landning.',
     risks: ['Långt', 'Bunkrar', 'Index 2'],
-    clubs: ['D', 'H', '56'],
+    clubs: ['H', '56'],
     strategy: 'aggressive',
     note: 'OBS: D + H + 56 på par-3?! Det är 3 slag på en par-3 = bogey är planen. Kanske du planerar för worst case? Egentligen: en hybrid räcker hit, sedan close-out med wedge om miss.',
   },
