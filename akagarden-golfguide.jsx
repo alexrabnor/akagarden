@@ -685,6 +685,115 @@ body, html, #root {
   line-height: 1.6;
 }
 
+/* ====== MAP BUTTON ====== */
+.map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 7px 14px;
+  background: rgba(52,199,89,0.08);
+  border: 1px solid rgba(52,199,89,0.25);
+  border-radius: 3px;
+  color: #34c759;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.map-btn:hover {
+  background: rgba(52,199,89,0.16);
+  border-color: rgba(52,199,89,0.5);
+}
+
+/* ====== MAP MODAL ====== */
+.map-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.map-modal {
+  position: relative;
+  background: #0d1311;
+  border: 1px solid rgba(52,199,89,0.2);
+  border-radius: 6px;
+  max-width: 92vw;
+  max-height: 90vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.map-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.map-modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.08em;
+  color: #34c759;
+}
+.map-modal-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #5a655e;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.map-modal-close {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.map-modal-close:hover { background: rgba(255,255,255,0.12); }
+.map-modal-body {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+.map-modal-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.map-modal-placeholder {
+  padding: 48px 24px;
+  text-align: center;
+  color: #5a655e;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+.map-modal-placeholder div:first-child {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
 /* ====== FOOTER ====== */
 .footer {
   text-align: center;
@@ -709,6 +818,48 @@ body, html, #root {
 
 // ============ COMPONENTS ============
 
+function getHoleMapSrc(n) {
+  if (n <= 4)  return '/images/hal-1-4.jpg';
+  if (n <= 8)  return '/images/hal-5-8.jpg';
+  if (n <= 12) return '/images/hal-9-12.jpg';
+  if (n <= 16) return '/images/hal-13-16.jpg';
+  return '/images/hal-17-18.jpg';
+}
+
+function HoleMapModal({ hole, onClose }) {
+  const src = getHoleMapSrc(hole.n);
+  // Stäng på klick utanför modalen
+  const handleOverlayClick = (e) => { if (e.target === e.currentTarget) onClose(); };
+  return (
+    <div className="map-overlay" onClick={handleOverlayClick}>
+      <div className="map-modal">
+        <div className="map-modal-header">
+          <div>
+            <div className="map-modal-title">Hål {hole.n} · {hole.title}</div>
+            <div className="map-modal-sub">Par {hole.par} · {hole.meters}m · Index {hole.index}</div>
+          </div>
+          <button className="map-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="map-modal-body">
+          <img
+            className="map-modal-img"
+            src={src}
+            alt={`Hålkarta hål ${hole.n}`}
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'block';
+            }}
+          />
+          <div className="map-modal-placeholder" style={{ display: 'none' }}>
+            <div>🗺️</div>
+            <div>Karta saknas — lägg till bild i public/images/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ClubChip({ raw }) {
   const meta = parseClub(raw);
   return (
@@ -725,7 +876,7 @@ function indexBadgeClass(idx) {
   return 'index-badge-easy';
 }
 
-function HoleCard({ hole }) {
+function HoleCard({ hole, onMapOpen }) {
   return (
     <div className="hole">
       <div className="hole-header">
@@ -773,6 +924,10 @@ function HoleCard({ hole }) {
           {hole.risks.map((r, i) => <span key={i} className="risk-chip">⚠ {r}</span>)}
         </div>
       )}
+
+      <button className="map-btn" onClick={() => onMapOpen(hole)}>
+        🗺️ Visa hålkarta
+      </button>
     </div>
   );
 }
@@ -875,6 +1030,7 @@ function StrategyStats() {
 
 export default function GolfGuide() {
   const [activeTab, setActiveTab] = useState('alla');
+  const [mapHole, setMapHole] = useState(null);
   const front9 = HOLES.slice(0, 9);
   const back9 = HOLES.slice(9, 18);
   const totalPar = HOLES.reduce((s, h) => s + h.par, 0);
@@ -885,6 +1041,7 @@ export default function GolfGuide() {
   return (
     <>
       <style>{css}</style>
+      {mapHole && <HoleMapModal hole={mapHole} onClose={() => setMapHole(null)} />}
       <div className="guide">
 
         {/* HERO */}
@@ -950,12 +1107,12 @@ export default function GolfGuide() {
             <>
               <div className="section-title">Front 9 · Ut</div>
               <div className="holes-grid">
-                {front9.map(h => <HoleCard key={h.n} hole={h} />)}
+                {front9.map(h => <HoleCard key={h.n} hole={h} onMapOpen={setMapHole} />)}
               </div>
               <NineSummary holes={front9} label="Front 9" />
               <div className="section-title">Back 9 · In</div>
               <div className="holes-grid">
-                {back9.map(h => <HoleCard key={h.n} hole={h} />)}
+                {back9.map(h => <HoleCard key={h.n} hole={h} onMapOpen={setMapHole} />)}
               </div>
               <NineSummary holes={back9} label="Back 9" />
             </>
@@ -963,7 +1120,7 @@ export default function GolfGuide() {
             <>
               <div className="section-title">{activeTab === 'front' ? 'Front 9 · Ut' : 'Back 9 · In'}</div>
               <div className="holes-grid">
-                {visibleHoles.map(h => <HoleCard key={h.n} hole={h} />)}
+                {visibleHoles.map(h => <HoleCard key={h.n} hole={h} onMapOpen={setMapHole} />)}
               </div>
               <NineSummary holes={visibleHoles} label={activeTab === 'front' ? 'Front 9' : 'Back 9'} />
             </>
